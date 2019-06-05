@@ -10,10 +10,11 @@ class Hero {
 		this.y = 500; //飞机初始纵坐标
 		this.img = bianliang.resObj[1]; //飞机的图片
 		//根据飞机的图片设置对象的大小
-		this.width = this.img.width;
-		this.height = this.img.height;
-		
-		this.isTwo = false;
+		this.width = this.img.width / 2;
+		this.height = this.img.height / 2;
+
+		//给它添加一个属性，用于表示当前的玩家是否发射双排子弹
+		this.isTwo = false; //true代表双排子弹，false则代表单排子弹
 	}
 
 
@@ -25,23 +26,27 @@ class Hero {
 
 	/*玩家飞机发射子弹的方法*/
 	fire() {
-		if(this.isTwo == false){
+		if (this.isTwo == false) {
+			//说明是单排子弹
 			//玩家飞机在哪里，子弹就在哪里？
 			var b = new Bullet(this.x, this.y);
 			//修正子弹的横坐标
 			b.x = b.x + this.width / 2 - b.width / 2;
 			bianliang.bulletList.push(b);
-		}else{
-			var b_left = new Bullet(this.x,this.y);
-			b_left.x = b_left.x + this.width/4 - b_left.width/2;
+		} else {
+			//说明双排子弹
+			var b_left = new Bullet(this.x, this.y);
+			//修正左边的子弹坐标
+			b_left.x = b_left.x + this.width / 4 - b_left.width / 2;
+
+			var b_right = new Bullet(this.x, this.y);
+			//修正右边子弹的坐标
+			b_right.x = b_right.x + this.width / 4 * 3 - b_right.width / 2;
 			
-			var b_right = new Bullet(this.x,this.y);
-			b_right.x = b_left.x + this.width/4*3 - b_right.width/2;
-			
+			//把左右两颗子弹添加到弹药库集合里面去
 			bianliang.bulletList.push(b_left);
 			bianliang.bulletList.push(b_right);
 		}
-		
 	}
 }
 

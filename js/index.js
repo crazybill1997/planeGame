@@ -2,7 +2,8 @@ import bianliang from "./bianliang.js";
 import BackGround from "./BackGround.js";
 import Hero from "./Hero.js";
 import Enemy from "./Enemy.js";
-import Tools from "./Tools.js";
+import Tool from "./Tool.js";
+
 
 //第一件事情,先获取画布(模拟屏幕)
 // #game代表id="game"
@@ -23,20 +24,21 @@ function startGame() {
 	setInterval(function() {
 		bg.draw(ctx); //画背景
 		hero.draw(ctx); //画玩家飞机
-		addEnemy(); //检测并添加敌机
-		addTools();
-		isCrash();
-
+		addEnemy(); //检测并添加敌人的飞机
+		addTool(); //检测并添加道具
+		isCrash();   //每次绘画之前，做一次碰撞检测
+		
 		//遍历所有的子弹，把所有的子弹画出来
 		for (var i = 0; i < bianliang.bulletList.length; i++) {
 			bianliang.bulletList[i].draw(ctx);
 		}
+		//把敌人的飞机画出来
 		for (var i = 0; i < bianliang.enemyList.length; i++) {
 			bianliang.enemyList[i].draw(ctx);
 		}
 		//把道具画出来
-		for (var i = 0; i < bianliang.toolsList.length; i++) {
-			bianliang.toolsList[i].draw(ctx);
+		for (var i = 0; i < bianliang.toolList.length; i++) {
+			bianliang.toolList[i].draw(ctx);
 		}
 
 	}, 50);
@@ -64,11 +66,13 @@ game.onmousemove = function(event) {
 	}
 }
 
-//定义一个专门添加敌人飞机方法
+//定一个方法 ，专门用于去添加敌人的飞机
 function addEnemy() {
+	//屏幕上面最多少能出现8架飞机
 	if (bianliang.enemyList.length < 8) {
+		//说明飞机不够    计算还差多少架飞机
 		var count = 8 - bianliang.enemyList.length;
-		//通过循环添加敌人
+		//通过for循环去添加飞机   注意import导入Enemy
 		for (var i = 0; i < count; i++) {
 			var e = new Enemy();
 			bianliang.enemyList.push(e);
@@ -76,48 +80,68 @@ function addEnemy() {
 	}
 }
 
-function addTools() {
-	//问题1：一次只能添加一个道具
-	//问题2：不能够时时刻刻产生道具
-	if (bianliang.toolsList.length < 1) {
-		//说明道具不存在，即可以产生道具
-		var temp = parseInt(Math.random() * 100);
-		if (temp > 90) {
-			var tool = new Tools();
-			bianliang.toolsList.push(tool);
+//要写一个方法去添加这个道具
+function addTool() {
+	/**
+	 * 问题：1.我们不能添加过多的道具，一次只能添加一个，如果屏幕上面已经有了道具，则不添加
+	 *      2.不能够随时产生道具，应该有一个概率去产生，我们希望这个概率是2% 
+	 */
+	//提示，注意在头部去导入import Tool from "./Tool.js";
+	if (bianliang.toolList.length < 1) {
+		//说明道具不存在，这时候，我可以随机的产生道具  
+		//怎么样去控制它的随机概率
+		var temp = parseInt(Math.random() * 100); //0~99之间的随机数
+		if (temp >= 98) {
+			var t = new Tool(); //创建一个新的道具对象
+			//把它添加到集合当中去
+			bianliang.toolList.push(t);
 		}
 	}
 }
 
-//碰撞检测
+
+//碰撞检测 ，也叫相交检测，检测两个物体是否有相交
 function checkCrash(a, b) {
 	if (a.x + a.width < b.x || b.x + b.width < a.x || a.y + a.height < b.y || b.y + b.height < a.y) {
+		//代表没有相交
 		return false;
 	} else {
 		return true;
 	}
 }
 
-//检测有哪些相交
-function isCrash(){
-	//玩家飞机与道具相交
-	for(var i = 0;i<bianliang.toolsList.length;i++){
-		var result = checkCrash(hero,bianliang.toolsList[i]);
-		if(result == true){
-		if(bianliang.toolsList[i].type == 0){
-			//双排子弹
-			hero.isTwo = true;			
-			bianliang.toolsList.splice(i,1);
-			//一次性定时器
-			setTimeout(function(){
-				hero.isTwo = false;
-			},10000);//10000代表10s
-		}else if(bianliang.toolsList[i].type == 1){
-			//原子弹
-			
+//我们现在就要检测游戏在进行的过程当中，有那些相交的情况
+
+function isCrash() {
+	//----------------------第一种情况，玩家飞机与道具发生了相交----------------------
+	for (var i = 0; i < bianliang.toolList.length; i++) {
+		//现在调用刚刚写好的checkCrash的方法来判断一下，两个物体是否有发生相交的过程
+		var result = checkCrash(hero, bianliang.toolList[i]);
+		//如果你是双排子弹，我就给你双排子弹，如果你是原子弹，我就让所有的飞机都爆炸
+		if(result==true){
+			if (bianliang.toolList[i].type == 0) {
+				//说明这个道具是一个双排的子弹
+				//怎么样将玩家的飞机设置成双排子弹
+				hero.isTwo=true;   //把它变成双排子弹
+				//道具应该要消失,所以，我们要移除当前的道具
+				bianliang.toolList.splice(i,1);
+				//现在，我们要定一个定时器，过一段时间以后就恢复成单排
+				//一次性定时器 
+				setTimeout(function(){
+					hero.isTwo=false;   //10秒钟以后，我就把你恢复成单排的子弹
+				},10000);
+			} else if (bianliang.toolList[i].type == 1) {
+				//说明是原子弹
 			}
 		}
 	}
+		
 	
+	//------------------------检测玩家飞机的子弹与敌人飞机发生碰撞以后----------------------
+	/**
+	 * 1.子弹消失
+	 * 2.敌人飞机消失
+	 * 提示：两个for循环
+	 */
 	
 }
