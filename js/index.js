@@ -9,6 +9,11 @@ import Tool from "./Tool.js";
 // #game代表id="game"
 var game = document.querySelector("#game");
 //第二件事情,在这里获取绘画用的笔
+
+
+
+
+
 var ctx = game.getContext("2d");
 
 bianliang.loading(startGame);
@@ -26,8 +31,8 @@ function startGame() {
 		hero.draw(ctx); //画玩家飞机
 		addEnemy(); //检测并添加敌人的飞机
 		addTool(); //检测并添加道具
-		isCrash();   //每次绘画之前，做一次碰撞检测
-		
+		isCrash(); //每次绘画之前，做一次碰撞检测
+
 		//遍历所有的子弹，把所有的子弹画出来
 		for (var i = 0; i < bianliang.bulletList.length; i++) {
 			bianliang.bulletList[i].draw(ctx);
@@ -40,7 +45,14 @@ function startGame() {
 		for (var i = 0; i < bianliang.toolList.length; i++) {
 			bianliang.toolList[i].draw(ctx);
 		}
-
+		//绘制爆炸动画
+		for (var i = 0; i < bianliang.boomList.length; i++) {
+			bianliang.boomList[i].draw(ctx);
+		}
+		//绘制玩家得分
+		ctx.fillStyle="white";
+		ctx.font="18pt 华文行楷";
+		ctx.fillText("得分："+bianliang.score,20,30);
 	}, 50);
 
 	//这个定时器是专门用于玩家飞机发射子弹的
@@ -118,30 +130,51 @@ function isCrash() {
 		//现在调用刚刚写好的checkCrash的方法来判断一下，两个物体是否有发生相交的过程
 		var result = checkCrash(hero, bianliang.toolList[i]);
 		//如果你是双排子弹，我就给你双排子弹，如果你是原子弹，我就让所有的飞机都爆炸
-		if(result==true){
+		if (result == true) {
 			if (bianliang.toolList[i].type == 0) {
 				//说明这个道具是一个双排的子弹
 				//怎么样将玩家的飞机设置成双排子弹
-				hero.isTwo=true;   //把它变成双排子弹
+				hero.isTwo = true; //把它变成双排子弹
 				//道具应该要消失,所以，我们要移除当前的道具
-				bianliang.toolList.splice(i,1);
+				bianliang.toolList.splice(i, 1);
 				//现在，我们要定一个定时器，过一段时间以后就恢复成单排
 				//一次性定时器 
-				setTimeout(function(){
-					hero.isTwo=false;   //10秒钟以后，我就把你恢复成单排的子弹
-				},10000);
+				setTimeout(function() {
+					hero.isTwo = false; //10秒钟以后，我就把你恢复成单排的子弹
+				}, 10000);
 			} else if (bianliang.toolList[i].type == 1) {
 				//说明是原子弹
+				for(var j=bianliang.enemyList.length-1;j>=0;j--){
+					bianliang.enemyList[j].life=0;
+					bianliang.enemyList[j].isDie();
+				}
+				bianliang.toolList.splice(i,1);
 			}
 		}
 	}
-		
-	
+
+
 	//------------------------检测玩家飞机的子弹与敌人飞机发生碰撞以后----------------------
 	/**
-	 * 1.子弹消失
-	 * 2.敌人飞机消失
-	 * 提示：两个for循环
+	 * 1.子弹消失	 * 2.敌人飞机消失  	 * 提示：两个for循环   遍历的时候，为什么要倒着遍历
+	 * 如果正着去遍历索引，后期改变集合长度的时候，它们的索引会改变
 	 */
-	
+	for (var i = bianliang.bulletList.length - 1; i >= 0; i--) { //找到了所有的子弹
+		for (var j = bianliang.enemyList.length - 1; j >= 0; j--) { //找到所有的敌机
+			//要将每一颗子弹与每一颗敌机都做一次碰撞检测
+			var result = checkCrash(bianliang.bulletList[i], bianliang.enemyList[j]);
+			//如果result为true.则说明玩家子弹与敌人飞机发生了碰撞，又说明玩家的子弹打中了敌人的飞机
+			if (result) {
+				//1.先移除子弹
+				bianliang.bulletList.splice(i, 1);
+				//2.减少敌机的生命值
+				bianliang.enemyList[j].life--;
+				//3.判断这个敌机有没有死
+				bianliang.enemyList[j].isDie();
+
+
+				break; //跳出这个循环，下入下一颗子弹
+			}
+		}
+	}
 }

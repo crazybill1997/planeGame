@@ -10,8 +10,8 @@ class Hero {
 		this.y = 500; //飞机初始纵坐标
 		this.img = bianliang.resObj[1]; //飞机的图片
 		//根据飞机的图片设置对象的大小
-		this.width = this.img.width / 2;
-		this.height = this.img.height / 2;
+		this.width = this.img.width ;
+		this.height = this.img.height;
 
 		//给它添加一个属性，用于表示当前的玩家是否发射双排子弹
 		this.isTwo = false; //true代表双排子弹，false则代表单排子弹
