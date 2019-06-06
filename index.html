@@ -10,8 +10,20 @@
 <body>
 	<!-- 480*1700 -->
 	<div class="gameBox">
+		<div class="startDiv">
+			<img src="R/name.png" >
+			<button type="button" class="btnStart">开始游戏</button>
+		</div>
 		<!-- 在html5里面多了一个新的标签，这个标签可以在页面上当模拟屏幕，这样就可以模拟任何东西 -->
 		<canvas id="game" width="480" height="850"></canvas>
+		<div class="endDiv">
+			<div class="top">最终得分</div>
+			<div class="center">3000</div>
+			<div class="bottom">
+				<!-- location.reload()表示重新加载 -->
+				<button type="button" class="btnReStart" onclick="location.reload()">AGAIN?</button>
+			</div>
+		</div>
 	</div>
 </body>
 <script src="js/index.js" type="module"></script>

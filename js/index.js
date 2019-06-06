@@ -15,18 +15,30 @@ var game = document.querySelector("#game");
 
 
 var ctx = game.getContext("2d");
+//加载完资源以后开始游戏
+bianliang.loading(function(){
+	//游戏资源加载好以后要做的事情,资源加载好后显示“开始游戏”按钮
+	document.querySelector(".btnStart").style.display = "inline-block";
+	//点击按钮  开始游戏
+	document.querySelector(".btnStart").onclick = function(){
+		startGame();
+		document.querySelector(".startDiv").style.display = "none";
+	}
+});
 
-bianliang.loading(startGame);
+// bianliang.loading(startGame);
 
 //定义一个开始游戏的方法 与loading相对应
 var bg = null; //定义一个背景变量
 var hero = null; //定义一个空的玩家对象
+var time0 = null; //第一个定时器
+var time1 = null; //第二个游戏定时器
 
 function startGame() {
 	bg = new BackGround();
 	hero = new Hero();
 	//接下来，要不停的去画自己，用到JS里面的定时器
-	setInterval(function() {
+	time0 = setInterval(function() {
 		bg.draw(ctx); //画背景
 		hero.draw(ctx); //画玩家飞机
 		addEnemy(); //检测并添加敌人的飞机
@@ -56,7 +68,7 @@ function startGame() {
 	}, 50);
 
 	//这个定时器是专门用于玩家飞机发射子弹的
-	setInterval(function() {
+	time1 = setInterval(function() {
 		hero.fire();
 	}, 250);
 }
@@ -175,6 +187,21 @@ function isCrash() {
 
 				break; //跳出这个循环，下入下一颗子弹
 			}
+		}
+	}
+	//--------------------玩家飞机与敌机碰撞----------------------------
+	for(var i = bianliang.enemyList.length - 1;i>=0;i--){
+		//遍历所有敌机
+		var result = checkCrash(bianliang.enemyList[i],hero);
+		if(result == true){
+			//说明发生了碰撞,gameover
+			clearInterval(time0);
+			clearInterval(time1);
+			
+			//游戏结束时应该吧分数显示出来
+			document.querySelector(".center").innerText = bianliang.score;
+			//显示结束的盒子
+			document.querySelector(".endDiv").style.display = "block";
 		}
 	}
 }
